@@ -2,7 +2,6 @@ package pbm
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 )
 

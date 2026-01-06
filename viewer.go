@@ -14,46 +14,8 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-type Header struct {
-	mark string
-	version uint16
-	pageCount uint16
-	readDirection uint8
-	hasMetaData uint8
-	hasThumbnails uint8
-	hasChapters uint8
-	currentPage uint32
-	metadataOffset uint64
-	indexOffset uint64
-	dataOffset uint64
-	thumbnailOffset uint64
-	chapterOffset uint64
-}
-
 const screenWidth = 480
 const screenHeight = 800
-
-func getHeader(filePT *os.File) error{
-	var header Header
-	headerBuffer := make([]byte, 56)
-
-	bufferReadLen, err := filePT.ReadAt(headerBuffer, 0)
-	if err != nil && bufferReadLen != 56 {
-		return fmt.Errorf("%v", err)
-	}
-
-	fmt.Println(headerBuffer)
-	header.mark = string(headerBuffer[0:4])
-	header.version = binary.LittleEndian.Uint16(headerBuffer[4:6])
-	header.pageCount = binary.LittleEndian.Uint16(headerBuffer[6:8])
-	
-
-	fmt.Println("mark: ", header.mark)
-	fmt.Println("versiom :", header.version)
-	fmt.Println("page count :", header.pageCount)
-
-	return nil
-}
 
 func getPageNum(path string) (uint16, error) {
 	var offset int64 = 6
@@ -3171,8 +3133,6 @@ func main() {
     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 
     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 
 	}
-	//pbm.CreatePBM(1,1, testData)
-	//pbm.TestLoop(testData)
 	expanded := pbm.ExpandBitmap(testData)
 
 	img := rl.NewImage(expanded, 480, 800, 1, rl.UncompressedGrayscale)

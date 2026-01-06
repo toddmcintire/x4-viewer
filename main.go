@@ -24,7 +24,7 @@ func main() {
 
 			if len(filePaths) > 0 {
 				buf := make([]byte, 48000)
-				bytesRead := x4.GetXTGData(filePaths[0], buf)
+				x4.GetXTGData(filePaths[0], buf)
 				expanded := pbm.ExpandBitmap(buf)
 				img := rl.NewImage(expanded, 480, 800, 1, rl.UncompressedGrayscale)
 				texture = rl.LoadTextureFromImage(img)

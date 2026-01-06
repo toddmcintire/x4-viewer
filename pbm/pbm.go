@@ -1,29 +1,10 @@
 package pbm
 
 import (
-	//"strings"
 	"fmt"
 	"os"
 	"strconv"
 )
-
-func CreatePBM(width int, height int, data []byte) error {
-	createdFile, err := os.Create("page1.pbm")
-	if err != nil {
-		return fmt.Errorf("failed to create file %v", err)
-	}
-	createdFile.Write([]byte{'4', '\n'})
-
-	
-	createdFile.Write([]byte(strconv.Itoa(width)))
-	createdFile.Write([]byte(" "))
-	createdFile.Write([]byte(strconv.Itoa(height)))	
-	createdFile.Write([]byte("\n"))
-
-	//TODO loop through data 60 hex at a time (480)
-
-	return nil
-}
 
 func TestLoop(data []byte) {
     chunkSize := 60

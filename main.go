@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	//"strings"
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/toddmcintire/x4-viewer.git/pbm"
 	"github.com/toddmcintire/x4-viewer.git/x4"

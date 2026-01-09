@@ -46,7 +46,7 @@ type Metadata struct {
 
 // n * 96 bytes (optional, at chapterOffset)
 type Chapter struct {
-	chapterName [80]byte
+	chapterName string
 	startPage uint16
 	endPage uint16
 	reserved1 uint32
@@ -121,6 +121,34 @@ func getXTCMetadata(path string, offset uint64) (Metadata, error) {
 	metadata.reserved = binary.LittleEndian.Uint64(metadataBuffer[248:256])
 
 	return metadata, nil
+}
+
+func getXTCChapter(path string, offset uint64, count uint16) ([]Chapter, error) {
+	var chapters []Chapter
+
+	filePT, openErr := os.Open(path)
+	if openErr != nil {
+		panic("error opening file")
+	}
+
+	for i:=0; i<=int(count); i++ {
+		chapterBuffer := make([]byte, 96)
+		var chapter Chapter
+
+		bufferReadLen, err := filePT.ReadAt(chapterBuffer, int64(offset))
+		if err != nil && bufferReadLen != 96 {
+			return []Chapter{}, fmt.Errorf("%v", err)
+		}
+
+		chapter.chapterName = string(chapterBuffer[:80])
+		chapter.startPage = binary.LittleEndian.Uint16(chapterBuffer[80:82])
+		chapter.endPage = binary.LittleEndian.Uint16(chapterBuffer[82:84])
+		//skipping reserved
+
+		chapters = append(chapters, chapter)
+	}	
+
+	return chapters, nil
 }
 
 //given path will return a slice of bytes

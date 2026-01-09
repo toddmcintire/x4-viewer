@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+
+	"golang.org/x/text/width"
 )
 
 //56 bytes
@@ -61,7 +63,17 @@ type Page struct {
 	size uint32
 	width uint16
 	height uint16
-	dataOffset [48000]byte
+}
+
+type XTG struct {
+	mark uint32
+	width uint16
+	height uint16
+	colorMode uint8
+	compression uint8
+	dataSize uint32
+	md5 uint64
+	data [48000]byte
 }
 
 func GetXTCHeader(path string) (Header, error){
@@ -149,6 +161,33 @@ func getXTCChapter(path string, offset uint64, count uint16) ([]Chapter, error) 
 	}	
 
 	return chapters, nil
+}
+
+func getXTCPage(path string, offset uint64, count uint16) ([]Page, error) {
+	var pages []Page
+
+	filePT, openErr := os.Open(path)
+	if openErr != nil {
+		panic("error opening file")
+	}
+
+	for i:=0; i<=int(count); i++ {
+		pageBuffer := make([]byte, 16)
+		var page Page
+
+		bufferReadLen, err := filePT.ReadAt(pageBuffer, int64(offset))
+		if err != nil && bufferReadLen != 16 {
+			return []Page{}, fmt.Errorf("%v", err)
+		}
+
+		page.offset = binary.LittleEndian.Uint64(pageBuffer[0:8])
+		page.size = binary.LittleEndian.Uint32(pageBuffer[8:12])
+		page.width = binary.LittleEndian.Uint16(pageBuffer[12:14])
+		page.height = binary.LittleEndian.Uint16(pageBuffer[14:16])
+
+		pages = append(pages, page)
+	}
+	return pages, nil
 }
 
 //given path will return a slice of bytes

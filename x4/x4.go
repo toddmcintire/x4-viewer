@@ -2,6 +2,7 @@ package x4
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"os"
 )
@@ -10,7 +11,7 @@ type Header struct {
 	mark string
 	version uint16
 	pageCount uint16
-	readDirection uint8
+	ReadDirection uint8
 	hasMetaData uint8
 	hasThumbnails uint8
 	hasChapters uint8
@@ -22,28 +23,44 @@ type Header struct {
 	chapterOffset uint64
 }
 
-func getHeader(filePT *os.File) (Header, error){
+type ReadDirection uint8
+
+const (
+	LR ReadDirection = iota
+	RL
+	TB
+)
+
+func GetXTCHeader(path string) (Header, error){
+	filePT, openErr := os.Open(path)
+	if openErr != nil {
+		panic("error opening file")
+	}
 	var header Header
 	headerBuffer := make([]byte, 56)
 
 	bufferReadLen, err := filePT.ReadAt(headerBuffer, 0)
 	if err != nil && bufferReadLen != 56 {
-		return fmt.Errorf("%v", err)
+		return Header{}, fmt.Errorf("%v", err)
 	}
 
 	header.mark = string(headerBuffer[0:4])
 	header.version = binary.LittleEndian.Uint16(headerBuffer[4:6])
 	header.pageCount = binary.LittleEndian.Uint16(headerBuffer[6:8])
-	header.readDirection = binary.LittleEndian.Uint8(headerBuffer[8:9])
-	header.hasMetaData = binary.LittleEndian.Uint8(headerBuffer[9:10])
-	header.hasThumbnails = binary.LittleEndian.Uint8(headerBuffer[10:11])
-	header.hasChapters = binary.LittleEndian.Uint8(headerBuffer[11:12])
+	header.readDirection = uint8(binary.LittleEndian.Uint16(headerBuffer[8:9]))
+	header.hasMetaData = uint8(binary.LittleEndian.Uint16(headerBuffer[9:10]))
+	header.hasThumbnails = uint8(binary.LittleEndian.Uint16(headerBuffer[10:11]))
+	header.hasChapters = uint8(binary.LittleEndian.Uint16(headerBuffer[11:12]))
 	header.currentPage = binary.LittleEndian.Uint32(headerBuffer[12:16])
 	header.metadataOffset = binary.LittleEndian.Uint64(headerBuffer[16:24])
 	header.indexOffset = binary.LittleEndian.Uint64(headerBuffer[24:32])
 	header.dataOffset = binary.LittleEndian.Uint64(headerBuffer[32:40])
 	header.thumbnailOffset = binary.LittleEndian.Uint64(headerBuffer[40:48])
 	header.chapterOffset = binary.LittleEndian.Uint64(headerBuffer[48:56])
+	
+	if header.hasMetaData == 0 {
+		return Header{}, errors.New("no metadata")
+	}
 
 	return header, nil
 }
@@ -63,5 +80,3 @@ func GetXTGData(path string, buf []byte) int {
 	}
 	return i
 }
-
-func 

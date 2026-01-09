@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"strings"
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/toddmcintire/x4-viewer.git/pbm"
 	"github.com/toddmcintire/x4-viewer.git/x4"
@@ -10,6 +12,13 @@ func main() {
 
 	var filePaths []string
 	var texture rl.Texture2D
+	type ModeFlag int
+	const (
+		XTG ModeFlag = iota + 1 //1
+		XTH //2
+		XTC //3
+		XTCH //4
+	)
 
 	rl.InitWindow(480, 800, "x4 viewer")
 	rl.SetTargetFPS(60)
@@ -23,6 +32,18 @@ func main() {
 			}
 
 			if len(filePaths) > 0 {
+				//check for file type
+				fmt.Println(filePaths[0])
+				//TODO: add other file types
+				if !strings.Contains(filePaths[0], ".xtg") {
+					//TODO: loop back to start
+					panic("incorrect file type")
+				}
+				
+				if strings.Contains(filePaths[0], ".xtg") {
+					
+				}
+
 				buf := make([]byte, 48000)
 				x4.GetXTGData(filePaths[0], buf)
 				expanded := pbm.ExpandBitmap(buf)

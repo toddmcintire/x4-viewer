@@ -34,10 +34,10 @@ const (
 
 //256 bytes (optional, at metadataOffset)
 type Metadata struct {
-	title [128]byte
-	author [64]byte
-	publisher [32]byte
-	language [16]byte
+	title string
+	author string
+	publisher string
+	language string
 	createTime uint32
 	coverPage uint16
 	chapterCount uint16
@@ -96,6 +96,31 @@ func GetXTCHeader(path string) (Header, error){
 	}
 
 	return header, nil
+}
+
+func getXTCMetadata(path string, offset uint64) (Metadata, error) {
+	filePT, openErr := os.Open(path)
+	if openErr != nil {
+		panic("error opening file")
+	}
+	var metadata Metadata
+	metadataBuffer := make([]byte, 256)
+
+	bufferReadLen, err := filePT.ReadAt(metadataBuffer, int64(offset))
+	if err != nil && bufferReadLen != 256 {
+		return Metadata{}, fmt.Errorf("%v", err)
+	}	
+
+	metadata.title = string(metadataBuffer[:128])
+	metadata.author = string(metadataBuffer[128:192])
+	metadata.publisher = string(metadataBuffer[192:224])
+	metadata.language = string(metadataBuffer[224:240])
+	metadata.createTime = binary.LittleEndian.Uint32(metadataBuffer[240:244])
+	metadata.coverPage = binary.LittleEndian.Uint16(metadataBuffer[244:246])
+	metadata.chapterCount = binary.LittleEndian.Uint16(metadataBuffer[246:248])
+	metadata.reserved = binary.LittleEndian.Uint64(metadataBuffer[248:256])
+
+	return metadata, nil
 }
 
 //given path will return a slice of bytes

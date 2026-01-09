@@ -11,7 +11,7 @@ type Header struct {
 	mark string
 	version uint16
 	pageCount uint16
-	ReadDirection uint8
+	readDirection ReadDirection
 	hasMetaData uint8
 	hasThumbnails uint8
 	hasChapters uint8

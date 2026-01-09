@@ -7,6 +7,7 @@ import (
 	"os"
 )
 
+//56 bytes
 type Header struct {
 	mark string
 	version uint16
@@ -31,6 +32,38 @@ const (
 	TB
 )
 
+//256 bytes (optional, at metadataOffset)
+type Metadata struct {
+	title [128]byte
+	author [64]byte
+	publisher [32]byte
+	language [16]byte
+	createTime uint32
+	coverPage uint16
+	chapterCount uint16
+	reserved uint64
+}
+
+// n * 96 bytes (optional, at chapterOffset)
+type Chapter struct {
+	chapterName [80]byte
+	startPage uint16
+	endPage uint16
+	reserved1 uint32
+	reserved2 uint32
+	reserved3 uint32
+}
+
+// pageCount * 16 bytes (at indexOffset)
+//thumbnail area (optional at thumbOffset after pageData)
+type Page struct {
+	offset uint64
+	size uint32
+	width uint16
+	height uint16
+	dataOffset [48000]byte
+}
+
 func GetXTCHeader(path string) (Header, error){
 	filePT, openErr := os.Open(path)
 	if openErr != nil {
@@ -47,7 +80,7 @@ func GetXTCHeader(path string) (Header, error){
 	header.mark = string(headerBuffer[0:4])
 	header.version = binary.LittleEndian.Uint16(headerBuffer[4:6])
 	header.pageCount = binary.LittleEndian.Uint16(headerBuffer[6:8])
-	header.readDirection = uint8(binary.LittleEndian.Uint16(headerBuffer[8:9]))
+	header.readDirection = ReadDirection(uint8(binary.LittleEndian.Uint16(headerBuffer[8:9])))
 	header.hasMetaData = uint8(binary.LittleEndian.Uint16(headerBuffer[9:10]))
 	header.hasThumbnails = uint8(binary.LittleEndian.Uint16(headerBuffer[10:11]))
 	header.hasChapters = uint8(binary.LittleEndian.Uint16(headerBuffer[11:12]))

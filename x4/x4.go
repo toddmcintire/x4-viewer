@@ -65,8 +65,8 @@ type Page struct {
 	height uint16
 }
 
-type XTG struct {
-	mark uint32
+type XTGXTH struct {
+	mark string
 	width uint16
 	height uint16
 	colorMode uint8
@@ -188,6 +188,33 @@ func getXTCPage(path string, offset uint64, count uint16) ([]Page, error) {
 		pages = append(pages, page)
 	}
 	return pages, nil
+}
+
+func GetXTCPages(pages []Page, filePtr *os.File) ([]XTGXTH, error) {
+	var pictures []XTGXTH
+
+	for _, v := range pages {
+		var pictureData XTGXTH	
+		pageDataBuffer := make([]byte, 48022)
+
+		bufferReadLen, err := filePtr.ReadAt(pageDataBuffer, int64(v.offset))
+		if err != nil && bufferReadLen != 48022 {
+			return []XTGXTH{}, fmt.Errorf("%v", err)
+		}
+
+		pictureData.mark = string(pageDataBuffer[0:4])
+		pictureData.width = binary.LittleEndian.Uint16(pageDataBuffer[4:6])
+		pictureData.height = binary.LittleEndian.Uint16(pageDataBuffer[6:8])
+		pictureData.colorMode = uint8(binary.LittleEndian.Uint16(pageDataBuffer[8:9]))
+		pictureData.compression = uint8(binary.LittleEndian.Uint16(pageDataBuffer[9:10]))
+		pictureData.dataSize = binary.LittleEndian.Uint32(pageDataBuffer[10:14])
+		pictureData.md5 = binary.LittleEndian.Uint64(pageDataBuffer[14:22])
+		pictureData.data = [48000]byte(pageDataBuffer[22:])
+
+		pictures = append(pictures, pictureData)
+	}
+
+	return pictures, nil
 }
 
 //given path will return a slice of bytes

@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-
-	"golang.org/x/text/width"
 )
 
 //56 bytes
@@ -110,7 +108,7 @@ func GetXTCHeader(path string) (Header, error){
 	return header, nil
 }
 
-func getXTCMetadata(path string, offset uint64) (Metadata, error) {
+func GetXTCMetadata(path string, offset uint64) (Metadata, error) {
 	filePT, openErr := os.Open(path)
 	if openErr != nil {
 		panic("error opening file")
@@ -163,7 +161,7 @@ func getXTCChapter(path string, offset uint64, count uint16) ([]Chapter, error) 
 	return chapters, nil
 }
 
-func getXTCPage(path string, offset uint64, count uint16) ([]Page, error) {
+func GetXTCPage(path string, offset uint64, count uint16) ([]Page, error) {
 	var pages []Page
 
 	filePT, openErr := os.Open(path)

@@ -41,14 +41,29 @@ func main() {
 				}
 				
 				if strings.Contains(filePaths[0], ".xtg") {
-					
+					buf := make([]byte, 48000)
+					x4.GetXTGData(filePaths[0], buf)
+					expanded := pbm.ExpandBitmap(buf)
+					img := rl.NewImage(expanded, 480, 800, 1, rl.UncompressedGrayscale)
+					texture = rl.LoadTextureFromImage(img)
 				}
 
-				buf := make([]byte, 48000)
-				x4.GetXTGData(filePaths[0], buf)
-				expanded := pbm.ExpandBitmap(buf)
-				img := rl.NewImage(expanded, 480, 800, 1, rl.UncompressedGrayscale)
-				texture = rl.LoadTextureFromImage(img)
+				if strings.Contains(filePaths[0], ".xtc") || strings.Contains(filePaths[0], ".xtch") {
+					//get header for index offset
+					header, headerErr := x4.GetXTCHeader(filePaths[0])
+					if headerErr != nil {
+						fmt.Errorf("could not get header: %v", headerErr)
+					}
+					//get metadata for chapter offset
+					x4.GetXTCMetadata(filePaths[0], header.metadataOffset)
+					//get chapter for page offset
+					x4.GetXTCPage(filePaths[0], header.indexOffset, )
+					//get page's for pictures
+					x4.GetXTCPages()
+
+				}
+
+				
 			}
 
 			rl.UnloadDroppedFiles()

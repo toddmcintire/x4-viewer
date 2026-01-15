@@ -12,7 +12,7 @@ type Header struct {
 	mark string
 	version uint16
 	pageCount uint16
-	readDirection uint16
+	readDirection uint8
 	hasMetaData uint8
 	hasThumbnails uint8
 	hasChapters uint8
@@ -74,26 +74,22 @@ type XTGXTH struct {
 	Data [48000]byte
 }
 
-func GetXTCHeader(path string) (Header, error){
-	filePT, openErr := os.Open(path)
-	if openErr != nil {
-		panic("error opening file")
-	}
+func GetXTCHeader(filePT *os.File) (Header, error){
 	var header Header
 	headerBuffer := make([]byte, 56)
 
 	bufferReadLen, err := filePT.ReadAt(headerBuffer, 0)
 	if err != nil && bufferReadLen != 56 {
-		return Header{}, fmt.Errorf("%v", err)
+		return Header{}, fmt.Errorf("buffer read error: %v", err)
 	}
 
 	header.mark = string(headerBuffer[0:4])
 	header.version = binary.LittleEndian.Uint16(headerBuffer[4:6])
 	header.pageCount = binary.LittleEndian.Uint16(headerBuffer[6:8])
-	header.readDirection = binary.LittleEndian.Uint16(headerBuffer[8:9])
-	header.hasMetaData = uint8(binary.LittleEndian.Uint16(headerBuffer[9:10]))
-	header.hasThumbnails = uint8(binary.LittleEndian.Uint16(headerBuffer[10:11]))
-	header.hasChapters = uint8(binary.LittleEndian.Uint16(headerBuffer[11:12]))
+	header.readDirection = headerBuffer[8]
+	header.hasMetaData = headerBuffer[9]
+	header.hasThumbnails = headerBuffer[10]
+	header.hasChapters = headerBuffer[11]
 	header.currentPage = binary.LittleEndian.Uint32(headerBuffer[12:16])
 	header.MetadataOffset = binary.LittleEndian.Uint64(headerBuffer[16:24])
 	header.IndexOffset = binary.LittleEndian.Uint64(headerBuffer[24:32])
@@ -108,11 +104,8 @@ func GetXTCHeader(path string) (Header, error){
 	return header, nil
 }
 
-func GetXTCMetadata(path string, offset uint64) (Metadata, error) {
-	filePT, openErr := os.Open(path)
-	if openErr != nil {
-		panic("error opening file")
-	}
+func GetXTCMetadata(filePT *os.File, offset uint64) (Metadata, error) {
+
 	var metadata Metadata
 	metadataBuffer := make([]byte, 256)
 
@@ -133,13 +126,8 @@ func GetXTCMetadata(path string, offset uint64) (Metadata, error) {
 	return metadata, nil
 }
 
-func getXTCChapter(path string, offset uint64, count uint16) ([]Chapter, error) {
+func getXTCChapter(filePT *os.File, offset uint64, count uint16) ([]Chapter, error) {
 	var chapters []Chapter
-
-	filePT, openErr := os.Open(path)
-	if openErr != nil {
-		panic("error opening file")
-	}
 
 	for i:=0; i<=int(count); i++ {
 		chapterBuffer := make([]byte, 96)
@@ -161,13 +149,8 @@ func getXTCChapter(path string, offset uint64, count uint16) ([]Chapter, error) 
 	return chapters, nil
 }
 
-func GetXTCPage(path string, offset uint64, count uint16) ([]Page, error) {
+func GetXTCPage(filePT *os.File, offset uint64, count uint16) ([]Page, error) {
 	var pages []Page
-
-	filePT, openErr := os.Open(path)
-	if openErr != nil {
-		panic("error opening file")
-	}
 
 	for i:=0; i<=int(count); i++ {
 		pageBuffer := make([]byte, 16)
@@ -188,19 +171,14 @@ func GetXTCPage(path string, offset uint64, count uint16) ([]Page, error) {
 	return pages, nil
 }
 
-func GetXTCPages(pages []Page, path string) ([]XTGXTH, error) {
+func GetXTCPages(pages []Page, filePT *os.File) ([]XTGXTH, error) {
 	var pictures []XTGXTH
-
-	filePtr, openErr := os.Open(path)
-	if openErr != nil {
-		panic("error opening file")
-	}
 
 	for _, v := range pages {
 		var pictureData XTGXTH	
 		pageDataBuffer := make([]byte, 48022)
 
-		bufferReadLen, err := filePtr.ReadAt(pageDataBuffer, int64(v.offset))
+		bufferReadLen, err := filePT.ReadAt(pageDataBuffer, int64(v.offset))
 		if err != nil && bufferReadLen != 48022 {
 			return []XTGXTH{}, fmt.Errorf("%v", err)
 		}
@@ -208,8 +186,8 @@ func GetXTCPages(pages []Page, path string) ([]XTGXTH, error) {
 		pictureData.mark = string(pageDataBuffer[0:4])
 		pictureData.width = binary.LittleEndian.Uint16(pageDataBuffer[4:6])
 		pictureData.height = binary.LittleEndian.Uint16(pageDataBuffer[6:8])
-		pictureData.colorMode = uint8(binary.LittleEndian.Uint16(pageDataBuffer[8:9]))
-		pictureData.compression = uint8(binary.LittleEndian.Uint16(pageDataBuffer[9:10]))
+		pictureData.colorMode = pageDataBuffer[8]
+		pictureData.compression = pageDataBuffer[9]
 		pictureData.dataSize = binary.LittleEndian.Uint32(pageDataBuffer[10:14])
 		pictureData.md5 = binary.LittleEndian.Uint64(pageDataBuffer[14:22])
 		pictureData.Data = [48000]byte(pageDataBuffer[22:])

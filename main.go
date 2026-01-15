@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strings"
+	"os"
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/toddmcintire/x4-viewer.git/pbm"
 	"github.com/toddmcintire/x4-viewer.git/x4"
@@ -50,23 +51,29 @@ func main() {
 				}
 
 				if strings.Contains(filePaths[0], ".xtc") || strings.Contains(filePaths[0], ".xtch") {
+					//get file pointer
+					filePT, openErr := os.Open(filePaths[0])
+					if openErr != nil {
+						panic("error opening file")
+					}
+
 					//get header for index offset and metadata offset
-					header, headerErr := x4.GetXTCHeader(filePaths[0])
+					header, headerErr := x4.GetXTCHeader(filePT)
 					if headerErr != nil {
 						fmt.Errorf("could not get header: %v", headerErr)
 					}
 					//get metadata for chapter offset
-					metadata, metadataErr := x4.GetXTCMetadata(filePaths[0], header.MetadataOffset)
+					metadata, metadataErr := x4.GetXTCMetadata(filePT, header.MetadataOffset)
 					if metadataErr != nil {
 						fmt.Errorf("could not get metadata: %v", metadataErr)
 					}
 					//get array of pages
-					pages, pagesErr := x4.GetXTCPage(filePaths[0], header.IndexOffset, metadata.ChapterCount)
+					pages, pagesErr := x4.GetXTCPage(filePT, header.IndexOffset, metadata.ChapterCount)
 					if pagesErr != nil {
 						fmt.Errorf("could not get pages: %v", pagesErr)
 					}
 					//get picture array from pages
-					pictures, pictureErr := x4.GetXTCPages(pages, filePaths[0])
+					pictures, pictureErr := x4.GetXTCPages(pages, filePT)
 					if pictureErr != nil {
 						fmt.Errorf("could not get pictures: %v", pictureErr)
 					}
@@ -97,14 +104,17 @@ func main() {
 		if len(filePaths) == 0 {
 			rl.DrawText("Drop file", 200, 400, 20, rl.DarkGray)
 		} else {
-			if (texture != rl.Texture2D{}) {
-				rl.DrawTexture(texture, 0, 0, rl.RayWhite)
-			} else if (len(textures) != 0) {
-				rl.DrawTexture(textures[0], 0, 0, rl.RayWhite)
-			} else {
-				panic("unknown error")
-			}
+			// if (texture != rl.Texture2D{}) {
+			// 	rl.DrawTexture(texture, 0, 0, rl.RayWhite)
+			// } else if (len(textures) != 0) {
+			// 	rl.DrawTexture(textures[0], 0, 0, rl.RayWhite)
+			// }
+			rl.DrawTexture(textures[0], 0,0,rl.RayWhite)
 		}
 		rl.EndDrawing()
+	}
+	rl.UnloadTexture(texture)
+	for _, unload := range textures {
+		rl.UnloadTexture(unload)
 	}
 }

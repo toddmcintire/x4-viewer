@@ -12,6 +12,7 @@ func main() {
 
 	var filePaths []string
 	var texture rl.Texture2D
+	var textures []rl.Texture2D
 	type ModeFlag int
 	const (
 		XTG ModeFlag = iota + 1 //1
@@ -34,11 +35,11 @@ func main() {
 			if len(filePaths) > 0 {
 				//check for file type
 				fmt.Println(filePaths[0])
-				//TODO: add other file types
-				if !strings.Contains(filePaths[0], ".xtg") {
-					//TODO: loop back to start
-					panic("incorrect file type")
-				}
+				//TODO: change to regex
+				// if !strings.Contains(filePaths[0], ".xtg") {
+				// 	//TODO: loop back to start
+				// 	panic("incorrect file type")
+				// }
 				
 				if strings.Contains(filePaths[0], ".xtg") {
 					buf := make([]byte, 48000)
@@ -65,7 +66,22 @@ func main() {
 						fmt.Errorf("could not get pages: %v", pagesErr)
 					}
 					//get picture array from pages
-					x4.GetXTCPages(pages, filePaths[0])
+					pictures, pictureErr := x4.GetXTCPages(pages, filePaths[0])
+					if pictureErr != nil {
+						fmt.Errorf("could not get pictures: %v", pictureErr)
+					}
+
+					//loop through pictures
+					for _, picture := range pictures {
+						//expand bits
+						expanded := pbm.ExpandBitmap(picture.Data[:])
+						//load image from bits
+						img := rl.NewImage(expanded, 480, 800, 1, rl.UncompressedGrayscale)
+						//load texture from image and add texture to texture array
+						textures = append(textures, rl.LoadTextureFromImage(img))
+
+					}
+					
 
 				}
 
@@ -81,7 +97,13 @@ func main() {
 		if len(filePaths) == 0 {
 			rl.DrawText("Drop file", 200, 400, 20, rl.DarkGray)
 		} else {
-			rl.DrawTexture(texture, 0, 0, rl.RayWhite)
+			if (texture != rl.Texture2D{}) {
+				rl.DrawTexture(texture, 0, 0, rl.RayWhite)
+			} else if (len(textures) != 0) {
+				rl.DrawTexture(textures[0], 0, 0, rl.RayWhite)
+			} else {
+				panic("unknown error")
+			}
 		}
 		rl.EndDrawing()
 	}

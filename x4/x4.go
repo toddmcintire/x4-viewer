@@ -71,7 +71,7 @@ type XTGXTH struct {
 	compression uint8
 	dataSize uint32
 	md5 uint64
-	data [48000]byte
+	Data [48000]byte
 }
 
 func GetXTCHeader(path string) (Header, error){
@@ -95,8 +95,8 @@ func GetXTCHeader(path string) (Header, error){
 	header.hasThumbnails = uint8(binary.LittleEndian.Uint16(headerBuffer[10:11]))
 	header.hasChapters = uint8(binary.LittleEndian.Uint16(headerBuffer[11:12]))
 	header.currentPage = binary.LittleEndian.Uint32(headerBuffer[12:16])
-	header.metadataOffset = binary.LittleEndian.Uint64(headerBuffer[16:24])
-	header.indexOffset = binary.LittleEndian.Uint64(headerBuffer[24:32])
+	header.MetadataOffset = binary.LittleEndian.Uint64(headerBuffer[16:24])
+	header.IndexOffset = binary.LittleEndian.Uint64(headerBuffer[24:32])
 	header.dataOffset = binary.LittleEndian.Uint64(headerBuffer[32:40])
 	header.thumbnailOffset = binary.LittleEndian.Uint64(headerBuffer[40:48])
 	header.chapterOffset = binary.LittleEndian.Uint64(headerBuffer[48:56])
@@ -127,7 +127,7 @@ func GetXTCMetadata(path string, offset uint64) (Metadata, error) {
 	metadata.language = string(metadataBuffer[224:240])
 	metadata.createTime = binary.LittleEndian.Uint32(metadataBuffer[240:244])
 	metadata.coverPage = binary.LittleEndian.Uint16(metadataBuffer[244:246])
-	metadata.chapterCount = binary.LittleEndian.Uint16(metadataBuffer[246:248])
+	metadata.ChapterCount = binary.LittleEndian.Uint16(metadataBuffer[246:248])
 	metadata.reserved = binary.LittleEndian.Uint64(metadataBuffer[248:256])
 
 	return metadata, nil
@@ -212,7 +212,7 @@ func GetXTCPages(pages []Page, path string) ([]XTGXTH, error) {
 		pictureData.compression = uint8(binary.LittleEndian.Uint16(pageDataBuffer[9:10]))
 		pictureData.dataSize = binary.LittleEndian.Uint32(pageDataBuffer[10:14])
 		pictureData.md5 = binary.LittleEndian.Uint64(pageDataBuffer[14:22])
-		pictureData.data = [48000]byte(pageDataBuffer[22:])
+		pictureData.Data = [48000]byte(pageDataBuffer[22:])
 
 		pictures = append(pictures, pictureData)
 	}

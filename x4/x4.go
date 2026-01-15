@@ -12,7 +12,7 @@ type Header struct {
 	mark string
 	version uint16
 	pageCount uint16
-	readDirection ReadDirection
+	readDirection uint16
 	hasMetaData uint8
 	hasThumbnails uint8
 	hasChapters uint8
@@ -90,7 +90,7 @@ func GetXTCHeader(path string) (Header, error){
 	header.mark = string(headerBuffer[0:4])
 	header.version = binary.LittleEndian.Uint16(headerBuffer[4:6])
 	header.pageCount = binary.LittleEndian.Uint16(headerBuffer[6:8])
-	header.readDirection = ReadDirection(uint8(binary.LittleEndian.Uint16(headerBuffer[8:9])))
+	header.readDirection = binary.LittleEndian.Uint16(headerBuffer[8:9])
 	header.hasMetaData = uint8(binary.LittleEndian.Uint16(headerBuffer[9:10]))
 	header.hasThumbnails = uint8(binary.LittleEndian.Uint16(headerBuffer[10:11]))
 	header.hasChapters = uint8(binary.LittleEndian.Uint16(headerBuffer[11:12]))

@@ -5,7 +5,6 @@ import (
 	"strings"
 	"os"
 	rl "github.com/gen2brain/raylib-go/raylib"
-	"github.com/toddmcintire/x4-viewer.git/pbm"
 	"github.com/toddmcintire/x4-viewer.git/x4"
 )
 
@@ -14,6 +13,8 @@ func main() {
 	var filePaths []string
 	var texture rl.Texture2D
 	var textures []rl.Texture2D
+	var pageIndex int
+	var pageLimit int
 	type ModeFlag int
 	const (
 		XTG ModeFlag = iota + 1 //1
@@ -45,7 +46,7 @@ func main() {
 				if strings.Contains(filePaths[0], ".xtg") {
 					buf := make([]byte, 48000)
 					x4.GetXTGData(filePaths[0], buf)
-					expanded := pbm.ExpandBitmap(buf)
+					expanded := x4.ExpandBitmap(buf)
 					img := rl.NewImage(expanded, 480, 800, 1, rl.UncompressedGrayscale)
 					texture = rl.LoadTextureFromImage(img)
 				}
@@ -62,26 +63,26 @@ func main() {
 					if headerErr != nil {
 						fmt.Errorf("could not get header: %v", headerErr)
 					}
-					//get metadata for chapter offset
-					metadata, metadataErr := x4.GetXTCMetadata(filePT, header.MetadataOffset)
-					if metadataErr != nil {
-						fmt.Errorf("could not get metadata: %v", metadataErr)
-					}
+					// //get metadata for chapter offset
+					// metadata, metadataErr := x4.GetXTCMetadata(filePT, header.MetadataOffset)
+					// if metadataErr != nil {
+					// 	fmt.Errorf("could not get metadata: %v", metadataErr)
+					// }
 					//get array of pages
-					pages, pagesErr := x4.GetXTCPage(filePT, header.IndexOffset, metadata.ChapterCount)
+					pages, pagesErr := x4.GetXTCPage(filePT, header.IndexOffset, header.PageCount)
 					if pagesErr != nil {
 						fmt.Errorf("could not get pages: %v", pagesErr)
 					}
+					pageLimit = int(header.PageCount)
 					//get picture array from pages
 					pictures, pictureErr := x4.GetXTCPages(pages, filePT)
 					if pictureErr != nil {
 						fmt.Errorf("could not get pictures: %v", pictureErr)
 					}
-
 					//loop through pictures
 					for _, picture := range pictures {
 						//expand bits
-						expanded := pbm.ExpandBitmap(picture.Data[:])
+						expanded := x4.ExpandBitmap(picture.Data[:])
 						//load image from bits
 						img := rl.NewImage(expanded, 480, 800, 1, rl.UncompressedGrayscale)
 						//load texture from image and add texture to texture array
@@ -98,6 +99,18 @@ func main() {
 			rl.UnloadDroppedFiles()
 		}
 
+		if (rl.IsKeyPressed(rl.KeyLeft)) {
+			if pageIndex != 0 {
+				pageIndex--
+			}
+		}
+		if (rl.IsKeyPressed(rl.KeyRight)) {
+			fmt.Println(len(textures))
+			if (pageIndex != pageLimit-1) {
+				pageIndex++
+			}
+		}
+
 		//Draw
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.RayWhite)
@@ -109,7 +122,7 @@ func main() {
 			// } else if (len(textures) != 0) {
 			// 	rl.DrawTexture(textures[0], 0, 0, rl.RayWhite)
 			// }
-			rl.DrawTexture(textures[0], 0,0,rl.RayWhite)
+			rl.DrawTexture(textures[pageIndex], 0,0,rl.RayWhite)
 		}
 		rl.EndDrawing()
 	}

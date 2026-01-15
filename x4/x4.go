@@ -11,7 +11,7 @@ import (
 type Header struct {
 	mark string
 	version uint16
-	pageCount uint16
+	PageCount uint16
 	readDirection uint8
 	hasMetaData uint8
 	hasThumbnails uint8
@@ -85,7 +85,7 @@ func GetXTCHeader(filePT *os.File) (Header, error){
 
 	header.mark = string(headerBuffer[0:4])
 	header.version = binary.LittleEndian.Uint16(headerBuffer[4:6])
-	header.pageCount = binary.LittleEndian.Uint16(headerBuffer[6:8])
+	header.PageCount = binary.LittleEndian.Uint16(headerBuffer[6:8])
 	header.readDirection = headerBuffer[8]
 	header.hasMetaData = headerBuffer[9]
 	header.hasThumbnails = headerBuffer[10]
@@ -152,7 +152,7 @@ func getXTCChapter(filePT *os.File, offset uint64, count uint16) ([]Chapter, err
 func GetXTCPage(filePT *os.File, offset uint64, count uint16) ([]Page, error) {
 	var pages []Page
 
-	for i:=0; i<=int(count); i++ {
+	for i:=0; i<int(count); i++ {
 		pageBuffer := make([]byte, 16)
 		var page Page
 
@@ -167,6 +167,9 @@ func GetXTCPage(filePT *os.File, offset uint64, count uint16) ([]Page, error) {
 		page.height = binary.LittleEndian.Uint16(pageBuffer[14:16])
 
 		pages = append(pages, page)
+
+		//increment offset
+		offset += 16
 	}
 	return pages, nil
 }
@@ -212,4 +215,24 @@ func GetXTGData(path string, buf []byte) int {
 		panic(err)
 	}
 	return i
+}
+
+func ExpandBitmap(data []byte) []byte{
+	var tempData []byte
+	for _, value := range data {
+		stringy := fmt.Sprintf("%08b",value)
+		for _, v := range stringy {
+			switch v {
+			case '1':
+				tempData = append(tempData, 0xFF)
+			case '0':
+				tempData = append(tempData, 0x00)
+			default:
+				fmt.Println("unknown")
+		}	
+		}
+
+	}	
+
+	return tempData
 }

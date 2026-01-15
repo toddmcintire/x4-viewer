@@ -17,8 +17,8 @@ type Header struct {
 	hasThumbnails uint8
 	hasChapters uint8
 	currentPage uint32
-	metadataOffset uint64
-	indexOffset uint64
+	MetadataOffset uint64
+	IndexOffset uint64
 	dataOffset uint64
 	thumbnailOffset uint64
 	chapterOffset uint64
@@ -40,7 +40,7 @@ type Metadata struct {
 	language string
 	createTime uint32
 	coverPage uint16
-	chapterCount uint16
+	ChapterCount uint16
 	reserved uint64
 }
 
@@ -188,8 +188,13 @@ func GetXTCPage(path string, offset uint64, count uint16) ([]Page, error) {
 	return pages, nil
 }
 
-func GetXTCPages(pages []Page, filePtr *os.File) ([]XTGXTH, error) {
+func GetXTCPages(pages []Page, path string) ([]XTGXTH, error) {
 	var pictures []XTGXTH
+
+	filePtr, openErr := os.Open(path)
+	if openErr != nil {
+		panic("error opening file")
+	}
 
 	for _, v := range pages {
 		var pictureData XTGXTH	

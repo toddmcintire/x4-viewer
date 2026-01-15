@@ -49,17 +49,23 @@ func main() {
 				}
 
 				if strings.Contains(filePaths[0], ".xtc") || strings.Contains(filePaths[0], ".xtch") {
-					//get header for index offset
+					//get header for index offset and metadata offset
 					header, headerErr := x4.GetXTCHeader(filePaths[0])
 					if headerErr != nil {
 						fmt.Errorf("could not get header: %v", headerErr)
 					}
 					//get metadata for chapter offset
-					x4.GetXTCMetadata(filePaths[0], header.metadataOffset)
-					//get chapter for page offset
-					x4.GetXTCPage(filePaths[0], header.indexOffset, )
-					//get page's for pictures
-					x4.GetXTCPages()
+					metadata, metadataErr := x4.GetXTCMetadata(filePaths[0], header.MetadataOffset)
+					if metadataErr != nil {
+						fmt.Errorf("could not get metadata: %v", metadataErr)
+					}
+					//get array of pages
+					pages, pagesErr := x4.GetXTCPage(filePaths[0], header.IndexOffset, metadata.ChapterCount)
+					if pagesErr != nil {
+						fmt.Errorf("could not get pages: %v", pagesErr)
+					}
+					//get picture array from pages
+					x4.GetXTCPages(pages, filePaths[0])
 
 				}
 

@@ -36,7 +36,6 @@ func main() {
 
 			if len(filePaths) > 0 {
 				//check for file type
-				fmt.Println(filePaths[0])
 				//TODO: change to regex
 				// if !strings.Contains(filePaths[0], ".xtg") {
 				// 	//TODO: loop back to start
@@ -105,7 +104,6 @@ func main() {
 			}
 		}
 		if (rl.IsKeyPressed(rl.KeyRight)) {
-			fmt.Println(len(textures))
 			if (pageIndex != pageLimit-1) {
 				pageIndex++
 			}

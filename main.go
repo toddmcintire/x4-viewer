@@ -11,7 +11,7 @@ import (
 func main() {
 
 	var filePaths []string
-	var texture rl.Texture2D
+	//var texture rl.Texture2D
 	var textures []rl.Texture2D
 	var pageIndex int
 	var pageLimit int
@@ -35,19 +35,13 @@ func main() {
 			}
 
 			if len(filePaths) > 0 {
-				//check for file type
-				//TODO: change to regex
-				// if !strings.Contains(filePaths[0], ".xtg") {
-				// 	//TODO: loop back to start
-				// 	panic("incorrect file type")
-				// }
 				
 				if strings.Contains(filePaths[0], ".xtg") {
 					buf := make([]byte, 48000)
 					x4.GetXTGData(filePaths[0], buf)
 					expanded := x4.ExpandBitmap(buf)
 					img := rl.NewImage(expanded, 480, 800, 1, rl.UncompressedGrayscale)
-					texture = rl.LoadTextureFromImage(img)
+					textures = append(textures, rl.LoadTextureFromImage(img))
 				}
 
 				if strings.Contains(filePaths[0], ".xtc") || strings.Contains(filePaths[0], ".xtch") {
@@ -124,7 +118,7 @@ func main() {
 		}
 		rl.EndDrawing()
 	}
-	rl.UnloadTexture(texture)
+	//rl.UnloadTexture(texture)
 	for _, unload := range textures {
 		rl.UnloadTexture(unload)
 	}
